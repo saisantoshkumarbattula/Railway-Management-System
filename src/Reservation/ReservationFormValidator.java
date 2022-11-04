@@ -1,0 +1,147 @@
+package Reservation;
+
+import Trains.AvailableTrains;
+import Trains.Train;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
+
+import static Reservation.Validator.*;
+
+public class ReservationFormValidator {
+    static final List<ReservedPassengers> passengerReserved = new LinkedList<>();
+    static List<Train> trains = AvailableTrains.trains;
+    static Scanner s = new Scanner(System.in);
+    static int trainNumber = 0;
+
+    public static void getPassengerDetails() {
+        System.out.println("Enter passenger Name : ");
+        String passengerName = s.nextLine();
+        System.out.println("Enter address : ");
+        String address = s.nextLine();
+        System.out.println("Enter Date of Journey : (dd/mm/yyyy)");
+        String dateOfJourney = s.nextLine();
+        System.out.println("Enter From Station : ");
+        String fromStation = s.nextLine();
+        System.out.println("Enter To Station : ");
+        String toStation = s.nextLine();
+        System.out.println("Enter the coach u want to travel : (1AC, 2AC, 3AC, SLEEPER) ");
+        String coach = s.nextLine();
+        System.out.println("Enter Purpose Of Journey");
+        String purposeOfJourney = s.nextLine();
+        System.out.println("Enter Mode Of Payment");
+        String modeOfPayment = s.nextLine();
+        System.out.println("Enter no of passengers including u : ");
+        int noOfPassengers = s.nextInt();
+        ReservationForm form = new ReservationForm(passengerName, address, dateOfJourney, fromStation, toStation, coach, purposeOfJourney, modeOfPayment, noOfPassengers);
+        detailsValidator(form);
+    }
+
+
+    private static void detailsValidator(ReservationForm form) {
+        String validator = "";
+        validator += fromAndToValidator(form) ? "" : NoFromStationFound_Or_NoToStationFound + ", ";
+        validator += validator.length() == 0 && dateValidator(form.dateOfJourney) ? "" : InvalidDateOfJourney + ", ";
+        validator += validator.length() == 0 && seatsAvailableInCoach(form) ? "" : NoSeatsFound + ", ";
+        validator += validator.length() == 0 && paymentModeCheck(form) ? "" : InvalidModeOfPayment + "";
+        validator = validator.length() == 0 ? "successful" : validator;
+        int totalFare = 0;
+        if (validator.equalsIgnoreCase("successful")) {
+            System.out.println("***** Reservation successful *****");
+            for (Train train : trains) {
+                if (train.trainNo == trainNumber) {
+                    if (form.coach.equalsIgnoreCase("sleeper")) {
+                        train.setTotalSeatsInSleeper(train.totalSeatsInSleeper - 1);
+                        totalFare = train.baseFair;
+                    }
+                    if (form.coach.equalsIgnoreCase("third ac") || form.coach.equalsIgnoreCase("3rd ac") || form.coach.charAt(0) == '3') {
+                        train.setTotalSeatsInThirdAc(train.totalSeatsInThirdAc - 1);
+                        totalFare = train.baseFair * 2;
+                    }
+                    if (form.coach.equalsIgnoreCase("second ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '2') {
+                        train.setTotalSeatsInSecondAc(train.totalSeatsInThirdAc - 1);
+                        totalFare = train.baseFair * 3;
+                    }
+                    if (form.coach.equalsIgnoreCase("first ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '1') {
+                        train.setTotalSeatsInFirstAc(train.totalSeatsInFirstAc - 1);
+                        totalFare = train.baseFair * 4;
+                    }
+                    passengerReserved.add(new ReservedPassengers(form.passengerName, form.address, form.dateOfJourney, form.fromStation, form.toStation, form.coach,form.purposeOfJourney, form.modeOfPayment, form.noOfPassengersIncludingU, totalFare * form.noOfPassengersIncludingU));
+                    System.out.println("***** Reservation Details *****");
+                    System.out.println("Passenger Name : " + form.passengerName);
+                    System.out.println("Reservation Successful");
+                    System.out.println("***** Train Details *****");
+                    System.out.println("Train No : " + train.trainNo);
+                    System.out.println("Train Name : " + train.trainName);
+                    System.out.println("From Location : " + train.fromLocation);
+                    System.out.println("To Location : " + train.toLocation);
+                    System.out.println("Date Of Journey : " + form.dateOfJourney);
+                    System.out.println("Total fare rs : " + totalFare * form.noOfPassengersIncludingU);
+                    System.out.println("We wish u a happy and safe Journey");
+                }
+            }
+        } else {
+            System.out.println("Some thing went wrong :");
+            System.out.println(validator);
+        }
+    }
+
+    private static boolean paymentModeCheck(ReservationForm form) {
+        return form.modeOfPayment.equalsIgnoreCase("cash") || form.modeOfPayment.equalsIgnoreCase("online");
+    }
+
+    private static boolean dateValidator(String dateOfJourney) {
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate date1 = LocalDate.parse(dateOfJourney, formatter);
+        LocalDate date2 = LocalDate.parse(formatter.format(now), formatter);
+        long daysBetween = ChronoUnit.DAYS.between(date2, date1);
+        return daysBetween >= 1;
+    }
+
+    private static boolean fromAndToValidator(ReservationForm form) {
+        for (Train train : trains) {
+            if (train.fromLocation.equalsIgnoreCase(form.fromStation) && train.toLocation.equalsIgnoreCase(form.toStation)) {
+                trainNumber = train.trainNo;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean seatsAvailableInCoach(ReservationForm form) {
+        for (Train train : trains) {
+            if (train.trainNo == trainNumber) {
+                if (form.coach.equalsIgnoreCase("sleeper") && train.totalSeatsInSleeper > 0) {
+                    return true;
+                }
+                if (form.coach.equalsIgnoreCase("third ac") || form.coach.equalsIgnoreCase("3rd ac") || form.coach.charAt(0) == '3' && train.totalSeatsInThirdAc > 0) {
+                    return true;
+                }
+                if (form.coach.equalsIgnoreCase("second ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '2' && train.totalSeatsInSecondAc > 0) {
+                    return true;
+                }
+                if (form.coach.equalsIgnoreCase("first ac") || form.coach.equalsIgnoreCase("1st ac") || form.coach.charAt(0) == '1' && train.totalSeatsInFirstAc > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+/*
+nira
+hyd
+17/04/2023
+secundrabad
+nagarsole
+1st ac
+holiday
+online
+5
+ */
