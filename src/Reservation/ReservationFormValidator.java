@@ -14,11 +14,12 @@ import static Reservation.Validator.*;
 
 public class ReservationFormValidator {
     static final List<ReservedPassengers> passengerReserved = new LinkedList<>();
-    static List<Train> trains = AvailableTrains.trains;
+    private static final int adminId = 143;
+//    static List<Train> trains = AvailableTrains.trains;
     static Scanner s = new Scanner(System.in);
     static int trainNumber = 0;
 
-    public static void getPassengerDetails() {
+    public static void entryPassengerDetails() {
         System.out.println("Enter passenger Name : ");
         String passengerName = s.nextLine();
         System.out.println("Enter address : ");
@@ -37,6 +38,7 @@ public class ReservationFormValidator {
         String modeOfPayment = s.nextLine();
         System.out.println("Enter no of passengers including u : ");
         int noOfPassengers = s.nextInt();
+        s.nextLine();
         ReservationForm form = new ReservationForm(passengerName, address, dateOfJourney, fromStation, toStation, coach, purposeOfJourney, modeOfPayment, noOfPassengers);
         detailsValidator(form);
     }
@@ -46,31 +48,31 @@ public class ReservationFormValidator {
         String validator = "";
         validator += fromAndToValidator(form) ? "" : NoFromStationFound_Or_NoToStationFound + ", ";
         validator += validator.length() == 0 && dateValidator(form.dateOfJourney) ? "" : InvalidDateOfJourney + ", ";
-        validator += validator.length() == 0 && seatsAvailableInCoach(form) ? "" : NoSeatsFound + ", ";
+        validator += validator.length() == 0 && seatsAvailableInCoach(form) ? "" : NoSeatsAvailable + ", ";
         validator += validator.length() == 0 && paymentModeCheck(form) ? "" : InvalidModeOfPayment + "";
         validator = validator.length() == 0 ? "successful" : validator;
         int totalFare = 0;
         if (validator.equalsIgnoreCase("successful")) {
             System.out.println("***** Reservation successful *****");
-            for (Train train : trains) {
+            for (Train train : AvailableTrains.trains) {
                 if (train.trainNo == trainNumber) {
                     if (form.coach.equalsIgnoreCase("sleeper")) {
-                        train.setTotalSeatsInSleeper(train.totalSeatsInSleeper - 1);
-                        totalFare = train.baseFair;
+                        train.setTotalSeatsInSleeper(train.totalSeatsInSleeper - form.noOfPassengersIncludingU);
+                        totalFare = train.trainFair;
                     }
                     if (form.coach.equalsIgnoreCase("third ac") || form.coach.equalsIgnoreCase("3rd ac") || form.coach.charAt(0) == '3') {
-                        train.setTotalSeatsInThirdAc(train.totalSeatsInThirdAc - 1);
-                        totalFare = train.baseFair * 2;
+                        train.setTotalSeatsInThirdAc(train.totalSeatsInThirdAc - form.noOfPassengersIncludingU);
+                        totalFare = train.trainFair * 2;
                     }
                     if (form.coach.equalsIgnoreCase("second ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '2') {
-                        train.setTotalSeatsInSecondAc(train.totalSeatsInThirdAc - 1);
-                        totalFare = train.baseFair * 3;
+                        train.setTotalSeatsInSecondAc(train.totalSeatsInThirdAc - form.noOfPassengersIncludingU);
+                        totalFare = train.trainFair * 3;
                     }
                     if (form.coach.equalsIgnoreCase("first ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '1') {
-                        train.setTotalSeatsInFirstAc(train.totalSeatsInFirstAc - 1);
-                        totalFare = train.baseFair * 4;
+                        train.setTotalSeatsInFirstAc(train.totalSeatsInFirstAc - form.noOfPassengersIncludingU);
+                        totalFare = train.trainFair * 4;
                     }
-                    passengerReserved.add(new ReservedPassengers(form.passengerName, form.address, form.dateOfJourney, form.fromStation, form.toStation, form.coach,form.purposeOfJourney, form.modeOfPayment, form.noOfPassengersIncludingU, totalFare * form.noOfPassengersIncludingU));
+                    passengerReserved.add(new ReservedPassengers(form.passengerName, form.address, form.dateOfJourney, form.fromStation, form.toStation, form.coach, form.purposeOfJourney, form.modeOfPayment, form.noOfPassengersIncludingU, totalFare * form.noOfPassengersIncludingU));
                     System.out.println("***** Reservation Details *****");
                     System.out.println("Passenger Name : " + form.passengerName);
                     System.out.println("Reservation Successful");
@@ -80,6 +82,8 @@ public class ReservationFormValidator {
                     System.out.println("From Location : " + train.fromLocation);
                     System.out.println("To Location : " + train.toLocation);
                     System.out.println("Date Of Journey : " + form.dateOfJourney);
+                    System.out.println("Coach : " + form.coach);
+                    System.out.println("Price per Ticket : " + totalFare);
                     System.out.println("Total fare rs : " + totalFare * form.noOfPassengersIncludingU);
                     System.out.println("We wish u a happy and safe Journey");
                 }
@@ -104,7 +108,7 @@ public class ReservationFormValidator {
     }
 
     private static boolean fromAndToValidator(ReservationForm form) {
-        for (Train train : trains) {
+        for (Train train : AvailableTrains.trains) {
             if (train.fromLocation.equalsIgnoreCase(form.fromStation) && train.toLocation.equalsIgnoreCase(form.toStation)) {
                 trainNumber = train.trainNo;
                 return true;
@@ -114,23 +118,37 @@ public class ReservationFormValidator {
     }
 
     private static boolean seatsAvailableInCoach(ReservationForm form) {
-        for (Train train : trains) {
+        for (Train train : AvailableTrains.trains) {
             if (train.trainNo == trainNumber) {
-                if (form.coach.equalsIgnoreCase("sleeper") && train.totalSeatsInSleeper > 0) {
+                if (form.coach.equalsIgnoreCase("sleeper") && train.totalSeatsInSleeper > 0 && form.noOfPassengersIncludingU <= train.totalSeatsInSleeper) {
                     return true;
                 }
-                if (form.coach.equalsIgnoreCase("third ac") || form.coach.equalsIgnoreCase("3rd ac") || form.coach.charAt(0) == '3' && train.totalSeatsInThirdAc > 0) {
+                if (form.coach.equalsIgnoreCase("third ac") || form.coach.equalsIgnoreCase("3rd ac") || form.coach.charAt(0) == '3' && train.totalSeatsInThirdAc > 0 && form.noOfPassengersIncludingU <= train.totalSeatsInThirdAc) {
                     return true;
                 }
-                if (form.coach.equalsIgnoreCase("second ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '2' && train.totalSeatsInSecondAc > 0) {
+                if (form.coach.equalsIgnoreCase("second ac") || form.coach.equalsIgnoreCase("2nd ac") || form.coach.charAt(0) == '2' && train.totalSeatsInSecondAc > 0 && form.noOfPassengersIncludingU <= train.totalSeatsInSecondAc) {
                     return true;
                 }
-                if (form.coach.equalsIgnoreCase("first ac") || form.coach.equalsIgnoreCase("1st ac") || form.coach.charAt(0) == '1' && train.totalSeatsInFirstAc > 0) {
+                if (form.coach.equalsIgnoreCase("first ac") || form.coach.equalsIgnoreCase("1st ac") || form.coach.charAt(0) == '1' && train.totalSeatsInFirstAc > 0 && form.noOfPassengersIncludingU <= train.totalSeatsInFirstAc) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    public static boolean adminIdValidator(int id) {
+        return adminId == id;
+    }
+
+    public static List<ReservedPassengers> getAllReservedPassengers() {
+//        if (adminIdValidator(id))
+//            System.out.println("Incorrect admin id");
+        if (passengerReserved.isEmpty())
+            System.out.println("No passengers reserved");
+        else
+            return passengerReserved;
+        return null;
     }
 }
 
