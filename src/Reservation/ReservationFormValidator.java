@@ -6,24 +6,29 @@ import Trains.Train;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
+import static Reservation.ReservedPassengers.passengerReserved;
 import static Reservation.Validator.*;
 
 public class ReservationFormValidator {
-    static final List<ReservedPassengers> passengerReserved = new LinkedList<>();
     private static final int adminId = 143;
-//    static List<Train> trains = AvailableTrains.trains;
     static Scanner s = new Scanner(System.in);
     static int trainNumber = 0;
 
     public static void entryPassengerDetails() {
         System.out.println("Enter passenger Name : ");
         String passengerName = s.nextLine();
+        System.out.println("Enter ur phone no");
+        String phoneNo = s.nextLine();
         System.out.println("Enter address : ");
         String address = s.nextLine();
+        System.out.println("Enter train No :");
+        int trainNo = s.nextInt();
+        s.nextLine();
+        System.out.println("Enter train Name :");
+        String trainName = s.nextLine();
         System.out.println("Enter Date of Journey : (dd/mm/yyyy)");
         String dateOfJourney = s.nextLine();
         System.out.println("Enter From Station : ");
@@ -39,20 +44,27 @@ public class ReservationFormValidator {
         System.out.println("Enter no of passengers including u : ");
         int noOfPassengers = s.nextInt();
         s.nextLine();
-        ReservationForm form = new ReservationForm(passengerName, address, dateOfJourney, fromStation, toStation, coach, purposeOfJourney, modeOfPayment, noOfPassengers);
+        ReservationForm form = new ReservationForm(passengerName, phoneNo,address, trainNo,trainName, dateOfJourney, fromStation, toStation, coach, purposeOfJourney, modeOfPayment, noOfPassengers);
         detailsValidator(form);
     }
-
+    private static Validator getValidationResult(ReservationForm form){
+        if(!fromAndToValidator(form)){
+            return NoFromStationFound_Or_NoToStationFound;
+        } else if (!dateValidator(form.dateOfJourney)){
+            return InvalidDateOfJourney;
+        } else if (!seatsAvailableInCoach(form)){
+            return NoSeatsAvailable;
+        } else if (!paymentModeCheck(form)) {
+            return InvalidModeOfPayment;
+        } else {
+            return Successful;
+        }
+    }
 
     private static void detailsValidator(ReservationForm form) {
-        String validator = "";
-        validator += fromAndToValidator(form) ? "" : NoFromStationFound_Or_NoToStationFound + ", ";
-        validator += validator.length() == 0 && dateValidator(form.dateOfJourney) ? "" : InvalidDateOfJourney + ", ";
-        validator += validator.length() == 0 && seatsAvailableInCoach(form) ? "" : NoSeatsAvailable + ", ";
-        validator += validator.length() == 0 && paymentModeCheck(form) ? "" : InvalidModeOfPayment + "";
-        validator = validator.length() == 0 ? "successful" : validator;
+        Validator validator = getValidationResult(form);
         int totalFare = 0;
-        if (validator.equalsIgnoreCase("successful")) {
+        if (validator.toString().equalsIgnoreCase("successful")) {
             System.out.println("***** Reservation successful *****");
             for (Train train : AvailableTrains.trains) {
                 if (train.trainNo == trainNumber) {
@@ -72,7 +84,22 @@ public class ReservationFormValidator {
                         train.setTotalSeatsInFirstAc(train.totalSeatsInFirstAc - form.noOfPassengersIncludingU);
                         totalFare = train.trainFair * 4;
                     }
-                    passengerReserved.add(new ReservedPassengers(form.passengerName, form.address, form.dateOfJourney, form.fromStation, form.toStation, form.coach, form.purposeOfJourney, form.modeOfPayment, form.noOfPassengersIncludingU, totalFare * form.noOfPassengersIncludingU));
+                    passengerReserved.add(
+                            new ReservedPassengers(
+                                    form.passengerName,
+                                    form.phoneNo,
+                                    form.address,
+                                    generatePnr(),
+                                    form.trainNo,
+                                    form.trainName,
+                                    form.dateOfJourney,
+                                    form.fromStation,
+                                    form.toStation,
+                                    form.coach,
+                                    form.purposeOfJourney,
+                                    form.modeOfPayment,
+                                    form.noOfPassengersIncludingU,
+                                    totalFare * form.noOfPassengersIncludingU));
                     System.out.println("***** Reservation Details *****");
                     System.out.println("Passenger Name : " + form.passengerName);
                     System.out.println("Reservation Successful");
@@ -92,6 +119,21 @@ public class ReservationFormValidator {
             System.out.println("Some thing went wrong :");
             System.out.println(validator);
         }
+    }
+    private  static String generatePnr() {
+        Random r = new Random();
+        String numbers = "01234546789";
+        StringBuilder b = new StringBuilder();
+        int i = 3;
+        while (i-- > 0) {
+            b.append(numbers.charAt(r.nextInt(numbers.length())));
+        }
+        b.append("-");
+        i = 7;
+        while (i-- > 0) {
+            b.append(numbers.charAt(r.nextInt(numbers.length())));
+        }
+        return b.toString();
     }
 
     private static boolean paymentModeCheck(ReservationForm form) {
@@ -141,20 +183,26 @@ public class ReservationFormValidator {
         return adminId == id;
     }
 
-    public static List<ReservedPassengers> getAllReservedPassengers() {
-//        if (adminIdValidator(id))
-//            System.out.println("Incorrect admin id");
-        if (passengerReserved.isEmpty())
-            System.out.println("No passengers reserved");
-        else
-            return passengerReserved;
-        return null;
+
+    public static boolean cancelTicket(int trainNumber, double deductedAmount){
+        boolean removed = false;
+        for (int i = 0; i < passengerReserved.size(); i++) {
+            if (trainNumber == passengerReserved.get(i).trainNo){
+                passengerReserved.get(i).totalCost -= deductedAmount;
+                passengerReserved.remove(passengerReserved.get(i));
+                removed = true;
+                break;
+            }
+        }
+        return removed;
     }
 }
 
 /*
 nira
+987654321
 hyd
+17254
 17/04/2023
 secundrabad
 nagarsole
@@ -162,4 +210,9 @@ nagarsole
 holiday
 online
 5
+
+nira
+987654321
+17254
+17/04/2023
  */

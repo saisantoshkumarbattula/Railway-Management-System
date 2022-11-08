@@ -68,7 +68,8 @@ public class Train {
 
     @Override
     public String toString() {
-        return "Train Details\n" + "trainNo = " + trainNo + "\n" +
+        return "Train Details" + "\n" +
+                "trainNo = " + trainNo + "\n" +
                 "trainName = " + trainName + "\n" +
                 "fromLocation = " + fromLocation + "\n" +
                 "toLocation = " + toLocation + "\n" +

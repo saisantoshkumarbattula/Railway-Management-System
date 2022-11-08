@@ -1,5 +1,6 @@
 package Admin;
 
+import Cancellation.CancellationForm;
 import Reservation.*;
 import Trains.AvailableTrains;
 import Trains.Train;
@@ -25,17 +26,18 @@ public class AdminFunctionality {
             id = s.nextInt();
         }
         while (true) {
-            System.out.println("1. Get All Reserved Passengers List\n2.Show All Available Trains\n3.Update Train Information\n4.Main menu\n5.Exit");
+            System.out.println("1.Get All Reserved Passengers List\n2.Get All Cancelled Passengers List\n3.Show All Available Trains\n4.Update Train Information\n5.Main menu\n6.Exit");
             int choice = s.nextInt();
             switch (choice) {
                 case 1 -> getAllReservedPassengersList();
-                case 2 -> showAllAvailableTrains();
-                case 3 -> updateTrainInformation();
-                case 4 -> {
+                case 2 -> getAllCancelledPassengersList();
+                case 3 -> showAllAvailableTrains();
+                case 4 -> updateTrainInformation();
+                case 5 -> {
                     System.out.println("Main menu");
                     new Operations().doOperation();
                 }
-                case 5 -> System.exit(0);
+                case 6 -> System.exit(0);
                 default -> System.out.println("Invalid choice");
             }
         }
@@ -56,19 +58,23 @@ public class AdminFunctionality {
                     case 1 -> {
                         System.out.println("Enter train new train no : ");
                         train.setTrainNo(s.nextInt());
+                        System.out.println("Train No Updated Successfully");
                         s.nextLine();
                     }
                     case 2 -> {
                         System.out.println("Enter updated source destination time : ");
                         train.setSourceDepartureTime(s.nextLine());
+                        System.out.println("Source Departure Time Updated Successfully");
                     }
                     case 3 -> {
                         System.out.println("Enter updated destination arrival time : ");
                         train.setDestinationArrivalTime(s.nextLine());
+                        System.out.println("Destination Arrival Time Updated Successfully");
                     }
                     case 4 -> {
                         System.out.println("Enter new updated fair : ");
                         train.setTrainFair(s.nextInt());
+                        System.out.println("Train Fair Updated Successfully");
                         s.nextLine();
                     }
                     case 5 -> {
@@ -76,12 +82,12 @@ public class AdminFunctionality {
                         new Operations().doOperation();
                     }
                     case 6 -> System.exit(0);
-                    default -> System.out.println("Invalid Choice");
+                    default -> System.out.println("Invalid Choice 🥲");
                 }
             }
         }
         if (!trainNoCheck)
-            System.out.println("Invalid Train No......");
+            System.out.println("Invalid Train No......🥲");
     }
 
     private void showAllAvailableTrains() {
@@ -90,26 +96,28 @@ public class AdminFunctionality {
     }
 
     public void getAllReservedPassengersList() {
-        List<ReservedPassengers> allReservedPassengers = ReservationFormValidator.getAllReservedPassengers();
+        List<ReservedPassengers> allReservedPassengers = ReservedPassengers.passengerReserved;
         assert allReservedPassengers != null;
         try {
             if (!allReservedPassengers.isEmpty()) {
                 System.out.println("Total Passengers Reserved : " + allReservedPassengers.size());
                 System.out.println();
-                allReservedPassengers.forEach(reservedPassengers -> {
-                    System.out.println("passenger Name : " + reservedPassengers.passengerName);
-                    System.out.println("Address : " + reservedPassengers.address);
-                    System.out.println("Date of Journey : " + reservedPassengers.dateOfJourney);
-                    System.out.println("From Station : " + reservedPassengers.fromStation);
-                    System.out.println("To Station : " + reservedPassengers.toStation);
-                    System.out.println("Coach : " + reservedPassengers.coach);
-                    System.out.println("No of Passengers : " + reservedPassengers.noOfPassengers);
-                    System.out.println("Total Cost : " + reservedPassengers.totalCost);
-                    System.out.println();
-                });
+                allReservedPassengers.forEach(System.out::println);
             }
         } catch (NullPointerException e) {
             System.out.println("All Reserved Passengers is Empty, so make sure that there is at least one Registration done");
+        }
+    }
+    public void getAllCancelledPassengersList(){
+        List<ReservedPassengers> cancelledPassengers = CancellationForm.cancelledPassengerList;
+        assert cancelledPassengers != null;
+        try{
+            System.out.println();
+            System.out.println("Total Cancelled Tickets : " + cancelledPassengers.size());
+            System.out.println();
+            cancelledPassengers.forEach(System.out::println);
+        }catch (NullPointerException e){
+            System.out.println("No Cancelled Tickets found");
         }
     }
 
