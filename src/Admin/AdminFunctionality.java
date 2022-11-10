@@ -4,7 +4,7 @@ import Cancellation.CancellationForm;
 import Reservation.*;
 import Trains.AvailableTrains;
 import Trains.Train;
-import UserOperations.Operations;
+import Operations.Operations;
 
 import java.util.List;
 import java.util.Scanner;
@@ -13,19 +13,8 @@ public class AdminFunctionality {
     Scanner s = new Scanner(System.in);
 
     public void adminFunctions() {
-        System.out.println("Enter admin id : ");
-        int id = s.nextInt();
-        int attempts = 3;
-        while (!ReservationFormValidator.adminIdValidator(id)) {
-            if (attempts == 1) {
-                System.out.println("Sorry please try again later");
-                System.exit(0);
-            }
-            System.out.println("No of attempts : " + --attempts);
-            System.out.println("Incorrect Admin Id please enter again : ");
-            id = s.nextInt();
-        }
         while (true) {
+            System.out.println("***** Admin *****");
             System.out.println("1.Get All Reserved Passengers List\n2.Get All Cancelled Passengers List\n3.Show All Available Trains\n4.Update Train Information\n5.Main menu\n6.Exit");
             int choice = s.nextInt();
             switch (choice) {
@@ -35,7 +24,7 @@ public class AdminFunctionality {
                 case 4 -> updateTrainInformation();
                 case 5 -> {
                     System.out.println("Main menu");
-                    new Operations().doOperation();
+                    new Operations().goBackAdmin();
                 }
                 case 6 -> System.exit(0);
                 default -> System.out.println("Invalid choice");
@@ -79,7 +68,7 @@ public class AdminFunctionality {
                     }
                     case 5 -> {
                         System.out.println("Main menu");
-                        new Operations().doOperation();
+                        new Operations().goBackUser();
                     }
                     case 6 -> System.exit(0);
                     default -> System.out.println("Invalid Choice 🥲");
@@ -91,34 +80,40 @@ public class AdminFunctionality {
     }
 
     private void showAllAvailableTrains() {
+        System.out.println("***** All Trains *****");
         System.out.println("Total Trains : " + AvailableTrains.trains.size());
         AvailableTrains.trains.forEach(System.out::println);
     }
 
     public void getAllReservedPassengersList() {
         List<ReservedPassengers> allReservedPassengers = ReservedPassengers.passengerReserved;
-        assert allReservedPassengers != null;
         try {
-            if (!allReservedPassengers.isEmpty()) {
+            System.out.println();
+            if (allReservedPassengers.size() == 0) {
+                System.out.println("***** No tickets found *****");
                 System.out.println("Total Passengers Reserved : " + allReservedPassengers.size());
-                System.out.println();
-                allReservedPassengers.forEach(System.out::println);
             }
+            System.out.println();
+            allReservedPassengers.forEach(System.out::println);
         } catch (NullPointerException e) {
             System.out.println("All Reserved Passengers is Empty, so make sure that there is at least one Registration done");
         }
     }
-    public void getAllCancelledPassengersList(){
+
+    public void getAllCancelledPassengersList() {
         List<ReservedPassengers> cancelledPassengers = CancellationForm.cancelledPassengerList;
-        assert cancelledPassengers != null;
-        try{
+        try {
             System.out.println();
-            System.out.println("Total Cancelled Tickets : " + cancelledPassengers.size());
+            if (cancelledPassengers.size() == 0) {
+                System.out.println("***** No tickets found *****");
+                System.out.println("Total Cancelled Tickets : " + cancelledPassengers.size());
+            }
             System.out.println();
             cancelledPassengers.forEach(System.out::println);
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             System.out.println("No Cancelled Tickets found");
         }
     }
+
 
 }

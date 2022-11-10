@@ -6,6 +6,7 @@ import Trains.Train;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -13,11 +14,11 @@ import static Reservation.ReservedPassengers.passengerReserved;
 import static Reservation.Validator.*;
 
 public class ReservationFormValidator {
-    private static final int adminId = 143;
+
     static Scanner s = new Scanner(System.in);
     static int trainNumber = 0;
 
-    public static void entryPassengerDetails() {
+    public static void getDetails() {
         System.out.println("Enter passenger Name : ");
         String passengerName = s.nextLine();
         System.out.println("Enter ur phone no");
@@ -100,9 +101,9 @@ public class ReservationFormValidator {
                                     form.modeOfPayment,
                                     form.noOfPassengersIncludingU,
                                     totalFare * form.noOfPassengersIncludingU));
+                    System.out.println();
                     System.out.println("***** Reservation Details *****");
                     System.out.println("Passenger Name : " + form.passengerName);
-                    System.out.println("Reservation Successful");
                     System.out.println("***** Train Details *****");
                     System.out.println("Train No : " + train.trainNo);
                     System.out.println("Train Name : " + train.trainName);
@@ -120,7 +121,7 @@ public class ReservationFormValidator {
             System.out.println(validator);
         }
     }
-    private  static String generatePnr() {
+    private static String generatePnr() {
         Random r = new Random();
         String numbers = "01234546789";
         StringBuilder b = new StringBuilder();
@@ -143,9 +144,15 @@ public class ReservationFormValidator {
     private static boolean dateValidator(String dateOfJourney) {
         LocalDate now = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        LocalDate date1 = LocalDate.parse(dateOfJourney, formatter);
-        LocalDate date2 = LocalDate.parse(formatter.format(now), formatter);
-        long daysBetween = ChronoUnit.DAYS.between(date2, date1);
+        LocalDate date1 = null;
+        LocalDate date2 = null;
+        try {
+            date1 = LocalDate.parse(dateOfJourney, formatter);
+            date2 = LocalDate.parse(formatter.format(now), formatter);
+        } catch (Exception e) {
+            System.out.println("InvalidDate -> Leading to Parse Exception please check the format dd/MM/yyyy");
+        }
+        long daysBetween = ChronoUnit.DAYS.between(Objects.requireNonNull(date2), date1);
         return daysBetween >= 1;
     }
 
@@ -179,23 +186,7 @@ public class ReservationFormValidator {
         return false;
     }
 
-    public static boolean adminIdValidator(int id) {
-        return adminId == id;
-    }
 
-
-    public static boolean cancelTicket(int trainNumber, double deductedAmount){
-        boolean removed = false;
-        for (int i = 0; i < passengerReserved.size(); i++) {
-            if (trainNumber == passengerReserved.get(i).trainNo){
-                passengerReserved.get(i).totalCost -= deductedAmount;
-                passengerReserved.remove(passengerReserved.get(i));
-                removed = true;
-                break;
-            }
-        }
-        return removed;
-    }
 }
 
 /*

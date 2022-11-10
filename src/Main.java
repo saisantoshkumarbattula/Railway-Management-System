@@ -1,11 +1,11 @@
-import UserOperations.Operations;
+import Operations.Operations;
 
 
 public class Main {
 
     public static void main(String[] args) {
-        Operations o = new Operations();
-        o.doOperation();
+        Operations operations = new Operations();
+        operations.doOperation();
     }
 }
 /*
@@ -27,6 +27,7 @@ santhu
 997658921
 hyd
 17040
+Falaknama
 10/04/2023
 secundrabad
 howrah

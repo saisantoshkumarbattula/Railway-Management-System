@@ -42,6 +42,7 @@ public class ReservedPassengers {
         return  "passengerName = " + passengerName + "\n" +
                 "phoneNo = " + phoneNo + "\n" +
                 "address = " + address + "\n" +
+                "Pnr No  = " + pnr + "\n" +
                 "trainNo = " + trainNo + "\n" +
                 "trainName = " + trainName + "\n" +
                 "dateOfJourney = " + dateOfJourney + "\n" +
@@ -51,7 +52,7 @@ public class ReservedPassengers {
                 "purposeOfJourney = " + purposeOfJourney + "\n" +
                 "modeOfPayment = " + modeOfPayment + "\n" +
                 "noOfPassengers = " + noOfPassengers + "\n" +
-                "totalCost = " + totalCost;
+                "totalCost = " + totalCost + "\n";
     }
 
 }

@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
-import Reservation.ReservationFormValidator;
 import Reservation.ReservedPassengers;
+
+import static Reservation.ReservedPassengers.passengerReserved;
 
 public class CancellationDetailsValidator {
     public final double cancellationFee = 120;
@@ -54,7 +55,7 @@ public class CancellationDetailsValidator {
                         current.modeOfPayment,
                         current.noOfPassengers,
                         current.totalCost);
-                cancellationResult = ReservationFormValidator.cancelTicket(form.trainNo, deductedAmount);
+                cancellationResult = cancelTicketIfPassengerReserved(form.trainNo, deductedAmount);
                 if (cancellationResult) {
                     System.out.println("**** Ticket Cancelled Successfully ****");
                     CancellationForm.cancelledPassengerList.add(cancelled);
@@ -65,6 +66,18 @@ public class CancellationDetailsValidator {
                 break;
             }
         }
+    }
+    private static boolean cancelTicketIfPassengerReserved(int trainNumber, double deductedAmount){
+        boolean removed = false;
+        for (int i = 0; i < passengerReserved.size(); i++) {
+            if (trainNumber == passengerReserved.get(i).trainNo){
+                passengerReserved.get(i).totalCost -= deductedAmount;
+                passengerReserved.remove(passengerReserved.get(i));
+                removed = true;
+                break;
+            }
+        }
+        return removed;
     }
 
     private boolean validateDetails(CancellationForm form) {
